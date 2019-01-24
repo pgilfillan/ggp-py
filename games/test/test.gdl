@@ -1,0 +1,8 @@
+(base 0) (base 1)
+(input 0) (input 1)
+(role player1) (role player2)
+(legal ?r 0) (legal ?r 1)
+(init 0)
+(<= (next 0) true(1))
+(<= (next 1) true(0))
+(<= (goal ?r 100) )
