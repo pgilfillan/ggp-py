@@ -1,0 +1,6 @@
+From manager                                         |  To manager
+info()                                                  availabe/busy + arbitrary key/value information
+start(id, role, description, startclock, playclock)     ready
+play(id, prev_moves)                                    <move>
+stop(id, prev_moves)                                    done
+abort(id)                                               done

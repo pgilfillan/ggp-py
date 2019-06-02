@@ -1,18 +1,23 @@
 from core.statemachines.propnet import PropNetStateMachine
 from core.state.state import State
+from abc import ABC
 
-
-class BasePlayer:
+class BasePlayer(ABC):
     
     def __init__(self, match):
         self.match = match
         self.state_machine = PropNetStateMachine(match.description)
 
-    def select_move(self, state):
+    @abstractmethod
+    def info(self):
         pass
 
-    def prepare(self):
+    @abstractmethod
+    def select_move(self, select_time, state, moves):
         pass
 
-    def study(self):
+    def study(self, study_time):
+        pass
+
+    def prepare(self, prepare_time):
         pass

@@ -1,11 +1,18 @@
+from ..gdl.general.definitions import Term
 
 class State:
 
-    def __init__(self, contents):
-        self.contents = contents
+    def __init__(self, base_terms):
+        self.base_terms = base_terms
 
-class GDLII_State(State):
-    
-    def __init__(self, contents, percepts):
-        super(GDLII_State, self).__init__(contents)
-        self.percepts = percepts
+    def __str__(self):
+        ret = "{ "
+        at_first = True
+        for term in self.base_terms:
+            if at_first:
+                ret += term.name + ": " + str(term.value)
+                at_first = False
+            else:
+                ret += ", " + term.name + ": " + str(term.value)
+        ret += " }"
+        return ret

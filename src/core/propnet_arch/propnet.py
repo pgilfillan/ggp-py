@@ -1,7 +1,8 @@
+from pyswip import Prolog
+from ..gdl.general.definitions import Term
 
 class PropNet:
 
-    #Needs roles, inputs, bases, views, legals, rewards, terminal
     def __init__(self, description):
         self.roles = None
         self.inputs = None
@@ -11,7 +12,19 @@ class PropNet:
         self.rewards = None
         self.terminal = None
 
-class PropNetHiddenInfo:
+        prolog = Prolog()
+        prolog.consult(description)
+
+        self.bases = {}
+        bases_query = list(prolog.query("base(X)"))
+
+        for bases_result in bases_query:
+            name = bases_result["X"]
+            self.bases[name] = Term(name, len(list(prolog.query("init(" + name + ")"))) == 1)
+
+
+
+class PropNetHiddenInfo(PropNet):
 
     def __init__(self, description):
         super(PropNetHiddenInfo, self).__init__(description)
