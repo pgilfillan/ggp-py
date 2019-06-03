@@ -9,3 +9,5 @@ joint_moves = sm.get_legal_joint_moves(init_state)
 print("Legal joint moves:", joint_moves)
 print("Is terminal:", sm.is_terminal(init_state))
 print("Goal value:", sm.get_goal_value(init_state, "player1"))
+moves = {'player1': "action2", "player2": "action2"}
+print("Next state:", sm.get_next_state(init_state, moves))

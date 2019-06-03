@@ -14,9 +14,9 @@ class PrologStateMachine(StateMachine):
         bases_query = list(self.prolog.query("base(X)"))
         for bases_result in bases_query:
             name = str(bases_result["X"])
-            bases.append(Term(name, len(list(self.prolog.query("init(" + name + ")"))) == 1))
-        init_state = State(bases)
-        return init_state
+            if len(list(self.prolog.query("init(" + name + ")"))) == 1:
+                bases.append(Term(name))
+        return State(bases)
 
     def is_terminal(self, state):
         self.set_base_truths(state)
@@ -44,10 +44,20 @@ class PrologStateMachine(StateMachine):
         return joint_legals
 
     def get_next_state(self, state, moves):
-        pass
+        self.set_base_truths(state)
+        self.prolog.retractall("does(R,A)")
+        for role in moves:
+            self.prolog.assertz("does(" + role + ", " + moves[role] + ")")
+        return State([Term(str(res['P'])) for res in list(self.prolog.query("next(P)"))])
+
+    def get_next_states(self, state, moves=None):
+        if moves == None:
+            pass
+        else:
+            pass
 
     def set_base_truths(self, state):
         self.prolog.retractall("true(X)")
-        for term in state.base_terms:
+        for term in state.true_terms:
             if term.value:
                 self.prolog.assertz("true(" + term.name + ")")

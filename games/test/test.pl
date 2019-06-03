@@ -11,8 +11,10 @@ legal(R, action2) :-
     true(0).
 
 next(0) :-
+    does(player1, action1),
     true(1).
 next(1) :-
+    does(player2, action2),
     true(0).
 
 goal(R, 100) :-
