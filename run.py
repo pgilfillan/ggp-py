@@ -9,7 +9,7 @@ for game in games:
     curr_state = sm.get_initial_state()
 
     moves_played = 0
-    max_moves = 22
+    max_moves = 20
     while moves_played < max_moves and not sm.is_terminal(curr_state):
         print("Curr state:", curr_state)
         joint_moves = sm.get_legal_joint_moves(curr_state)

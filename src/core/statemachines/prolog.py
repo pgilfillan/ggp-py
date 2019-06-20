@@ -48,7 +48,7 @@ class PrologStateMachine(StateMachine):
         self.prolog.retractall("does(R,A)")
         for role in moves:
             self.prolog.assertz("does(" + role + ", " + moves[role] + ")")
-        return State([Term(str(res['P'])) for res in list(self.prolog.query("next(P)"))])
+        return State(set([Term(str(res['P'])) for res in list(self.prolog.query("next(P)"))]))
 
     def get_next_states(self, state, moves=None):
         if moves == None:

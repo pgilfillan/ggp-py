@@ -41,7 +41,20 @@ next(cell(M, N, o)) :-
     true(cell(M, N, o)).
 
 next(cell(M, N, b)) :-
-    true(cell(M, N, b)).
+    true(cell(M, N, b)),
+    role(R),
+    index(J),
+    index(K),
+    does(R, mark(J, K)),
+    J =\= M.
+
+next(cell(M, N, b)) :-
+    true(cell(M, N, b)),
+    role(R),
+    index(J),
+    index(K),
+    does(R, mark(J, K)),
+    K =\= N.
 
 next(control(xplayer)) :-
     true(control(oplayer)).
