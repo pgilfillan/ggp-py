@@ -20,7 +20,8 @@ class PrologStateMachine(StateMachine):
 
     def is_terminal(self, state):
         self.set_base_truths(state)
-        return len(list(self.prolog.query("terminal"))) == 1
+        result_length = len(list(self.prolog.query("terminal")))
+        return result_length >= 1
 
     def get_goal_value(self, state, player):
         self.set_base_truths(state)
