@@ -8,7 +8,7 @@ class PrologStateMachine(StateMachine):
     def __init__(self, description):
         self.prolog = Prolog()
         self.prolog.consult(description)
-        self.roles = set([str(res['R']) for res in list(self.prolog.query("role(R)"))])
+        self.roles = list(set([str(res['R']) for res in list(self.prolog.query("role(R)"))]))
 
     def get_initial_state(self):
         bases = []
