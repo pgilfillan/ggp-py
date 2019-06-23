@@ -38,9 +38,11 @@ else:
                         players[i] = obj(game_description)
                         num_found += 1
 
-    print(num_found, players)
-    sys.exit()
+    if num_found != len(players):
+        print("Was only able to find %d of the %d players specified" % (num_found, len(players)))
+        sys.exit(1)
 
+# Start games
 for run in range(args.num_games):
     curr_state = sm.get_initial_state()
 
