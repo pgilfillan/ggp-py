@@ -8,6 +8,7 @@ class PrologStateMachine(StateMachine):
     def __init__(self, description):
         self.prolog = Prolog()
         self.prolog.consult(description)
+        self.roles = set([str(res['R']) for res in list(self.prolog.query("role(R)"))])
 
     def get_initial_state(self):
         bases = []
@@ -62,3 +63,4 @@ class PrologStateMachine(StateMachine):
         for term in state.true_terms:
             if term.value:
                 self.prolog.assertz("true(" + term.name + ")")
+

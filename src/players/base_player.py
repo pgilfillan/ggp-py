@@ -1,12 +1,11 @@
-from core.statemachines.propnet import PropNetStateMachine
-from core.state.state import State
-from abc import ABC
+from ..core.statemachines.propnet import PropNetStateMachine
+from ..core.state.state import State
+from abc import ABC, abstractmethod
 
 class BasePlayer(ABC):
     
     def __init__(self, match):
         self.match = match
-        self.state_machine = PropNetStateMachine(match.description)
 
     @abstractmethod
     def info(self):

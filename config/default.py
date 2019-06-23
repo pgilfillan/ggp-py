@@ -1,0 +1,2 @@
+player = "RandomPlayer"
+game = "TicTacToe"

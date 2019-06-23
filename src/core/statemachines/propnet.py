@@ -1,5 +1,5 @@
-from base import StateMachine
-from core.state.state import State
+from .base import StateMachine
+from ..state.state import State
 
 class PropNetStateMachine(StateMachine):
 
