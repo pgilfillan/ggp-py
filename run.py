@@ -1,14 +1,15 @@
 from src.core.statemachines.prolog import PrologStateMachine
 from config import default
-import inspect
+from src.core.management.match import Match, MatchSpec
 
+import inspect
 import argparse
 import sys
 import pkgutil
 from importlib import import_module
 
 
-def load_players():
+def load_players(spec, sm):
     if args.players == None:
         players = {}
         players_mod = import_module("src.players")
@@ -20,7 +21,7 @@ def load_players():
                 if inspect.isclass(obj):
                     if default.player == obj.__name__:
                         for role_name in sm.roles:
-                            players[role_name] = obj(game_description)
+                            players[role_name] = obj(spec)
 
         if len(players) == 0:
             print("Unable to find default.player class")
@@ -40,7 +41,7 @@ def load_players():
                 if inspect.isclass(obj):
                     for player_name in args.players:
                         if player_name == obj.__name__:
-                            players[sm.roles[num_found]] = obj(game_description)
+                            players[sm.roles[num_found]] = obj(spec)
                             num_found += 1
 
         if num_found != len(sm.roles):
@@ -50,47 +51,61 @@ def load_players():
     return players
 
 
-arg_parser = argparse.ArgumentParser()
-arg_parser.add_argument('--game', metavar='game_name', help='Name of the game to play', default=default.game)
-arg_parser.add_argument('--players', metavar='players', help='Name of players for the game', nargs='+')
-arg_parser.add_argument('--num_games', metavar='num_repetitions', help='Number of times to repeat the game', type=int, default=1)
-arg_parser.add_argument('--max_moves', metavar='max_moves', help='Maximum number of moves for each game', type=int, default=100)
-arg_parser.add_argument('--study_time', metavar='study_time', help='TIme limit (s) for player to study the game before the match', type=int, default=0)
-arg_parser.add_argument('--prepare_time', metavar='prepare_time', help='Time limit (s) for player to prepare for the match', type=int, default=300)
-arg_parser.add_argument('--select_time', metavar='select_time', help='Time limit (s) for player to select a move during the match', type=int, default=30)
-args = arg_parser.parse_args()
+def main():
+    game_description_pl = "games/" + args.game + "/" + args.game + ".pl"
+    with open(game_description_pl, 'r') as f:
+        game_description = f.read()
 
-game_description = "games/" + args.game + "/" + args.game + ".pl"
-sm = PrologStateMachine(game_description)
+    sm = PrologStateMachine(game_description)
+    spec = MatchSpec(game_description)
+    players = load_players(spec, sm)
 
-players = load_players()
 
-# Study
-if args.study_time != 0:
-    for role_name in players:
-        players[role_name].study(args.study_time)
+    # Study
+    if args.study_time != 0:
+        for role_name in players:
+            players[role_name].study(args.study_time)
 
-# Start games
-for run in range(args.num_games):
-    # Prepare
-    for role_name in players:
-        players[role_name].prepare(args.prepare_time)
+    # Start games
+    for run in range(args.num_games):
+        # Prepare
+        for role_name in players:
+            players[role_name].prepare(args.prepare_time)
 
-    curr_state = sm.get_initial_state()
-    moves_played = 0
-    while moves_played < args.max_moves and not sm.is_terminal(curr_state):
-        print("Curr state:", curr_state)
-        joint_moves = sm.get_legal_joint_moves(curr_state)
-        next_moves = {}
-        for role_name in joint_moves:
-            next_moves[role_name] = players[role_name].select_move(0, curr_state, joint_moves[role_name])
-        print("Chosen moves:", next_moves)
-        curr_state = sm.get_next_state(curr_state, next_moves)
-        moves_played += 1
+        curr_state = sm.get_initial_state()
+        moves_played = 0
+        while moves_played < args.max_moves and not sm.is_terminal(curr_state):
+            print("Curr state:", curr_state)
+            joint_moves = sm.get_legal_joint_moves(curr_state)
+            next_moves = {}
+            for role_name in joint_moves:
+                next_moves[role_name] = players[role_name].select_move(0, curr_state, joint_moves[role_name])
+            print("Chosen moves:", next_moves)
+            curr_state = sm.get_next_state(curr_state, next_moves)
+            moves_played += 1
 
-    if moves_played == args.max_moves:
-        print("Game ended before terminating: max moves reached")
-    else:
-        print("Game ended in", moves_played, "moves")
-        print("Ending state:", curr_state)
-        print("Player scores: xplayer: ", sm.get_goal_value(curr_state, "xplayer"), "; oplayer: ", sm.get_goal_value(curr_state, "oplayer"))
+        if moves_played == args.max_moves:
+            print("Game ended before terminating: max moves reached")
+        else:
+            print("Game ended in", moves_played, "moves")
+            print("Ending state:", curr_state)
+            print("Player scores: xplayer: ", sm.get_goal_value(curr_state, "xplayer"), "; oplayer: ", sm.get_goal_value(curr_state, "oplayer"))
+
+
+if __name__ == "__main__":
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('--game', metavar='game_name', help='Name of the game to play', default=default.game)
+    arg_parser.add_argument('--players', metavar='players', help='Name of players for the game', nargs='+')
+    arg_parser.add_argument('--num_games', metavar='num_repetitions', help='Number of times to repeat the game',
+                            type=int, default=1)
+    arg_parser.add_argument('--max_moves', metavar='max_moves', help='Maximum number of moves for each game', type=int,
+                            default=100)
+    arg_parser.add_argument('--study_time', metavar='study_time',
+                            help='TIme limit (s) for player to study the game before the match', type=int, default=0)
+    arg_parser.add_argument('--prepare_time', metavar='prepare_time',
+                            help='Time limit (s) for player to prepare for the match', type=int, default=300)
+    arg_parser.add_argument('--select_time', metavar='select_time',
+                            help='Time limit (s) for player to select a move during the match', type=int, default=30)
+    args = arg_parser.parse_args()
+
+    main()

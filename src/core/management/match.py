@@ -1,15 +1,11 @@
 
 class Match:
 
-    def __init__(self, spec, description):
+    def __init__(self, spec, role):
         self.spec = spec
-        self.description = description
+        self.role = role
 
 class MatchSpec:
 
-    def __init__(self, game, players, study_time, start_time, decide_time):
-        self.game = game
-        self.players = players
-        self.study_time = study_time
-        self.start_time = start_time
-        self.decide_time = decide_time
+    def __init__(self, game_description):
+        self.game_description = game_description

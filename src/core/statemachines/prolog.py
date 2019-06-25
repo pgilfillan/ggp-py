@@ -2,12 +2,13 @@ from .base import StateMachine
 from ..state.state import State
 from pyswip import Prolog
 from ..gdl.general.definitions import Term
+from ..util.prolog import load_game_description
 
 class PrologStateMachine(StateMachine):
 
     def __init__(self, description):
         self.prolog = Prolog()
-        self.prolog.consult(description)
+        load_game_description(description)
         self.roles = list(set([str(res['R']) for res in list(self.prolog.query("role(R)"))]))
 
     def get_initial_state(self):
