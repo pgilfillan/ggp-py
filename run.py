@@ -78,7 +78,7 @@ def main():
             joint_moves = sm.get_legal_joint_moves(curr_state)
             next_moves = {}
             for role_name in joint_moves:
-                next_moves[role_name] = players[role_name].select_move(0, curr_state, joint_moves[role_name])
+                next_moves[role_name] = players[role_name].select_move(args.select_time, curr_state, joint_moves[role_name])
             print("Chosen moves:", next_moves)
             curr_state = sm.get_next_state(curr_state, next_moves)
             moves_played += 1
@@ -102,9 +102,9 @@ if __name__ == "__main__":
     arg_parser.add_argument('--study_time', metavar='study_time',
                             help='TIme limit (s) for player to study the game before the match', type=int, default=0)
     arg_parser.add_argument('--prepare_time', metavar='prepare_time',
-                            help='Time limit (s) for player to prepare for the match', type=int, default=300)
+                            help='Time limit (s) for player to prepare for the match', type=int, default=60)
     arg_parser.add_argument('--select_time', metavar='select_time',
-                            help='Time limit (s) for player to select a move during the match', type=int, default=30)
+                            help='Time limit (s) for player to select a move during the match', type=int, default=5)
     args = arg_parser.parse_args()
 
     main()

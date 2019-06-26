@@ -20,12 +20,17 @@ class MonteCarloPlayer(BasePlayer):
 
         curr_index = 0
         values = [0]*len(moves)
-        while (elapsed < 5):
+        num_charges = [0]*len(moves)
+        while (elapsed < select_time):
             values[curr_index] += self.depth_charge(state, moves[curr_index])
+            num_charges[curr_index] += 1
             curr_index += 1
             if curr_index == len(moves):
                 curr_index = 0
             elapsed = time.time() - start
+
+        for i in range(len(values)):
+            values[i] /= num_charges[i]
 
         curr_max_index = 0
         curr_max = 0
