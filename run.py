@@ -9,7 +9,7 @@ import pkgutil
 from importlib import import_module
 
 
-def load_players(spec, sm):
+def load_players(match, sm):
     if args.players == None:
         players = {}
         players_mod = import_module("src.players")
@@ -21,7 +21,7 @@ def load_players(spec, sm):
                 if inspect.isclass(obj):
                     if default.player == obj.__name__:
                         for role_name in sm.roles:
-                            players[role_name] = obj(spec)
+                            players[role_name] = obj(match, role_name)
 
         if len(players) == 0:
             print("Unable to find default.player class")
@@ -41,7 +41,7 @@ def load_players(spec, sm):
                 if inspect.isclass(obj):
                     for player_name in args.players:
                         if player_name == obj.__name__:
-                            players[sm.roles[num_found]] = obj(spec)
+                            players[sm.roles[num_found]] = obj(match, sm.roles[num_found])
                             num_found += 1
 
         if num_found != len(sm.roles):
@@ -57,17 +57,16 @@ def main():
         game_description = f.read()
 
     sm = PrologStateMachine(game_description)
-    spec = MatchSpec(game_description)
-    players = load_players(spec, sm)
-
-
-    # Study
-    if args.study_time != 0:
-        for role_name in players:
-            players[role_name].study(args.study_time)
+    match = Match(MatchSpec(game_description))
+    players = load_players(match, sm)
 
     # Start games
     for run in range(args.num_games):
+        # Study
+        if args.study_time != 0:
+            for role_name in players:
+                players[role_name].study(args.study_time)
+
         # Prepare
         for role_name in players:
             players[role_name].prepare(args.prepare_time)

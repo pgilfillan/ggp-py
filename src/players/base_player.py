@@ -4,8 +4,9 @@ from abc import ABC, abstractmethod
 
 class BasePlayer(ABC):
     
-    def __init__(self, match):
+    def __init__(self, match, role):
         self.match = match
+        self.role = role
 
     @abstractmethod
     def info(self):

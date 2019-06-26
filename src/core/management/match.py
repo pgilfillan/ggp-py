@@ -1,9 +1,8 @@
 
 class Match:
 
-    def __init__(self, spec, role):
+    def __init__(self, spec):
         self.spec = spec
-        self.role = role
 
 class MatchSpec:
 
