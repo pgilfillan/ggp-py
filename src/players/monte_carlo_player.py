@@ -7,7 +7,7 @@ import time
 class MonteCarloPlayer(BasePlayer):
 
     def info(self):
-        info = {'name': "RandomPlayer"}
+        info = {'name': "MonteCarloPlayer"}
         return info
 
     def select_move(self, select_time, state, moves):
