@@ -61,7 +61,9 @@ def main():
     players = load_players(match, sm)
 
     # Start games
-    for run in range(args.num_games):
+    for run in range(args.num_matches):
+        print("#### STARTING MATCH %d ####" % (run + 1))
+
         # Study
         if args.study_time != 0:
             for role_name in players:
@@ -90,12 +92,13 @@ def main():
             print("Ending state:", curr_state)
             print("Player scores: xplayer: ", sm.get_goal_value(curr_state, "xplayer"), "; oplayer: ", sm.get_goal_value(curr_state, "oplayer"))
 
+        print()
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--game', metavar='game_name', help='Name of the game to play', default=default.game)
     arg_parser.add_argument('--players', metavar='players', help='Name of players for the game', nargs='+')
-    arg_parser.add_argument('--num_games', metavar='num_repetitions', help='Number of times to repeat the game',
+    arg_parser.add_argument('--num_matches', metavar='num_repetitions', help='Number of times to repeat the game',
                             type=int, default=1)
     arg_parser.add_argument('--max_moves', metavar='max_moves', help='Maximum number of moves for each game', type=int,
                             default=100)
