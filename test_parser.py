@@ -48,19 +48,17 @@ def props_split(proposition):
     return terms
 
 def parse_gdl(description):
-    roles = []
-    inputs = []
-    inits = []
-    nexts = []
-    bases = []
-    legals = []
-    goals = []
-    terminal = []
+    roles = {}
+    inputs = {}
+    inits = {}
+    nexts = {}
+    bases = {}
+    legals = {}
+    goals = {}
 
     description = description.strip()
     for line in description.splitlines():
         line = line.strip()
-        print("Line:", line)
         if re.search(r'<=', line):
             search = re.search(r'\(<= ([a-z]+) (.*)\)', line)
             if search is None:
@@ -74,45 +72,44 @@ def parse_gdl(description):
         prop_term = get_prop(proposition)
         cond_terms = get_conditions(conditions)
 
-        if str(prop_term) == "terminal":
+        if proposition == "terminal":
             prop_type = "terminal"
         elif not prop_term.is_leaf():
             prop_type = str(prop_term.inner_terms[0])
         else:
             prop_type = "other"
-        print(prop_type)
 
         if prop_type == "role":
-            roles.append(prop_term)
+            roles[proposition] = (prop_term, cond_terms)
         elif prop_type == "input":
-            inputs.append(prop_term)
+            inputs[proposition] = (prop_term, cond_terms)
         elif prop_type == "base":
-            bases.append(prop_term)
+            bases[proposition] = (prop_term, cond_terms)
         elif prop_type == "init":
-            inits.append(prop_term)
+            inits[proposition] = (prop_term, cond_terms)
         elif prop_type == "true":
             print("true should not appear as a proposition")
         elif prop_type == "does":
             print("does should not appear as a proposition")
         elif prop_type == "next":
-            nexts.append(prop_term)
+            nexts[proposition]  = (prop_term, cond_terms)
         elif prop_type == "legal":
-            legals.append(prop_term)
+            legals[proposition] = (prop_term, cond_terms)
         elif prop_type == "goal":
-            goals.append(prop_term)
+            goals[proposition] = (prop_term, cond_terms)
         elif prop_type == "terminal":
-            terminal.append("terminal exists")
+            terminal = ("terminal", cond_terms)
         else:
             print("Is Other")
 
-    print(roles)
-    print(inputs)
-    print(inits)
-    print(nexts)
-    print(bases)
-    print(legals)
-    print(goals)
-    print(terminal)
+    print("Roles:", roles)
+    print("Inputs:", inputs)
+    print("Inits:", inits)
+    print("Nexts:", nexts)
+    print("Bases:", bases)
+    print("Legals:", legals)
+    print("Goals:", goals)
+    print("Terminal:", terminal)
 
 def get_conditions(conditions):
     if conditions is None:
