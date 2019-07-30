@@ -1,55 +1,170 @@
-from pyswip import Prolog
-from ..gdl.general.definitions import Term
-from ..util.prolog import load_game_description
-from .node import PropNetNode, PropNetEdge
+from .node import PropNetNode, PropNetEdge, Term
+from .util import parse_gdl
 
 class PropNet:
 
     def __init__(self, description):
-        self.roles = None
-        self.inputs = None
-        self.bases = None
-        self.views = None
-        self.legals = None
-        self.rewards = None
+        self.nodes = {}
+        self.init_marking = {}
+
+        self.bases = []
+        self.inputs = []
+        self.roles = []
+        self.legals = []
+        self.rewards = []
+        self.views = []
         self.terminal = None
 
-        load_game_description(description)
-        self.prolog = Prolog()
+        self.dummy_count = 0
 
-        self.load_bases()
-        self.load_inputs()
-        self.load_views()
+        term_tuples = parse_gdl(description)
+        for term_tuple in term_tuples:
+            self.add_node(term_tuple[0], term_tuple[1])
 
+        print("Init marking:", self.init_marking)
+        print()
+        for base_node in self.init_marking:
+            self.nodes[base_node].value = self.init_marking[base_node]
 
-        print([key for key in self.inputs])
-        print([key for key in self.bases])
+        for node_name in self.nodes:
+            print(self.nodes[node_name])
 
-        self.prolog.assertz("does(white,mark)")
-        print(list(self.prolog.query("next(X)")))
+    def add_node(self, term, conditions=[]):
+        term_str = str(term)
 
-        self.terminal = PropNetNode("terminal", False)
+        if term_str in self.nodes:
+            old_node = self.nodes[term_str]
 
-    def load_bases(self):
-        self.bases = {}
-        bases_query = list(self.prolog.query("base(X)"))
-        for bases_result in bases_query:
-            name = bases_result["X"]
-            self.bases[name] = Term(name, len(list(self.prolog.query("init(" + name + ")"))) >= 1)
+            # old has no conditions: add_conditions_to_node(conditions, old_node)
+            # old has 1 condition, new len(conditions) == 1:
 
-    def load_inputs(self):
-        self.inputs = {}
-        inputs_query = list(self.prolog.query("input(X)"))
-        for input_result in inputs_query:
-            name = input_result["X"]
-            self.inputs[name] = Term(name, False)
+            if len(conditions) > 0:
+                # If the old node has an AND or NOT edge type, add a dummy node to combine the sources into one node
+                if old_node.in_edge.type == PropNetEdge.Type.And or old_node.in_edge.type == PropNetEdge.Type.Negation:
+                    dummy_node = self.add_dummy_node()
+                    old_node.in_edge.dest = dummy_node
+                    new_edge = PropNetEdge(dummy_node, old_node, PropNetEdge.Type.Or)
+                    dummy_node.out_edges.append(new_edge)
+                    old_node.in_edge = new_edge
+                elif old_node.in_edge.type == PropNetEdge.Type.Identity:
+                    old_node.in_edge.type = PropNetEdge.Type.Or
 
-    def load_views(self):
-        pass
+            return old_node
+        else:
+            new_node = self.new_node_add(term)
+            self.nodes[term_str] = new_node
+            self.add_conditions_to_node(conditions, new_node)
+            return new_node
 
+    def add_conditions_to_node(self, conditions, node):
+        if len(conditions) == 0:
+            return
+        elif len(conditions) == 1:
+            if conditions[0].Type == Term.Type.Not:
+                cond_node = self.add_node(conditions[0].inner_terms[1])
+                new_edge = PropNetEdge([cond_node], node, PropNetEdge.Type.Negation)
+            else:
+                cond_node = self.add_node(conditions[0])
+                new_edge = PropNetEdge([cond_node], node, PropNetEdge.Type.Identity)
+            cond_node.out_edges.append(new_edge)
+            node.in_edge = new_edge
+        else:
+            new_edge = PropNetEdge([], node, PropNetEdge.Type.And)
+            node.in_edge = new_edge
+            for condition in conditions:
+                if condition.type == Term.Type.Not:
+                    cond_node = self.add_node(condition.inner_terms[1])
+                    dummy_node = self.add_dummy_node()
+                    dummy_edge = PropNetEdge([cond_node], dummy_node, PropNetEdge.Type.Negation)
+                    cond_node.out_edges.append(dummy_edge)
+                    dummy_node.in_edge = dummy_edge
+                    source_node = dummy_node
+                else:
+                    source_node = self.add_node(condition)
 
-class PropNetHiddenInfo(PropNet):
+                new_edge.sources.append(source_node)
 
-    def __init__(self, description):
-        super(PropNetHiddenInfo, self).__init__(description)
-        self.unknowns = None
+    def add_dummy_node(self):
+        dummy_string = "dummy" + str(self.dummy_count)
+        dummy_node = PropNetNode(Term(dummy_string))
+        self.nodes[dummy_string] = dummy_node
+        self.views.append(dummy_node)
+        self.dummy_count += 1
+        return dummy_node
+
+    def new_node_add(self, term):
+        prop_type = term.type
+        if prop_type == Term.Type.Role:
+            new_node = PropNetNode(term)
+            self.roles.append(new_node)
+        elif prop_type == Term.Type.Input:
+            # Don't need to do anything with input terms:
+            # can use legals instead
+            return
+        elif prop_type == Term.Type.Base:
+            base_term = term.inner_terms[1]
+            base_str = str(base_term)
+
+            if base_str not in self.nodes:
+                new_node = PropNetNode(base_term)
+                self.bases.append(new_node)
+                self.nodes[base_str] = new_node
+                return new_node
+            else:
+                return self.nodes[base_str]
+        elif prop_type == Term.Type.Init:
+            self.init_marking[str(term.inner_terms[1])] = True
+            # Init should have no conditions, can return
+            return
+        elif prop_type == Term.Type.GDLTrue:
+            prop_term = term.inner_terms[1]
+            prop_term_str = str(prop_term)
+            if prop_term_str not in self.nodes:
+                new_node = PropNetNode(prop_term)
+                # TODO: figure out which group this should go into e.g. views
+            else:
+                return self.nodes[prop_term_str]
+        elif prop_type == Term.Type.Does:
+            input_term_str = "(" + str(term.inner_terms[1]) + " " + str(term.inner_terms[2]) + ")"
+            if input_term_str not in self.nodes:
+                new_node = PropNetNode(Term(input_term_str))
+                self.inputs.append(new_node)
+            else:
+                return self.nodes[input_term_str]
+        elif prop_type == Term.Type.Next:
+            new_node = PropNetNode(term)
+            self.views.append(new_node)
+
+            base_term = term.inner_terms[1]
+            base_str = str(base_term)
+            if base_str not in self.nodes:
+                base_node = PropNetNode(base_term)
+                self.bases.append(base_node)
+                self.nodes[base_str] = base_node
+            else:
+                base_node = self.nodes[base_str]
+
+            new_edge = PropNetEdge([new_node], base_node, PropNetEdge.Type.Transition)
+            new_node.out_edges.append(new_edge)
+            base_node.in_edge = new_edge
+        elif prop_type == Term.Type.Legal:
+            new_node = PropNetNode(term)
+            self.legals.append(new_node)
+
+            input_term_str = "(" + str(term.inner_terms[1]) + " " + str(term.inner_terms[2]) + ")"
+            if input_term_str not in self.nodes:
+                new_input_node = PropNetNode(Term(input_term_str))
+                self.inputs.append(new_input_node)
+                self.nodes[input_term_str] = new_input_node
+        elif prop_type == Term.Type.Goal:
+            new_node = PropNetNode(term)
+            self.rewards.append(new_node)
+        elif prop_type == Term.Type.Terminal:
+            new_node = PropNetNode(term)
+            self.terminal = new_node
+        else:
+            # TODO: needed?
+            new_node = PropNetNode(term)
+            self.views.append(new_node)
+
+        return new_node
