@@ -35,19 +35,22 @@ class PropNet:
         if term_str in self.nodes:
             old_node = self.nodes[term_str]
 
-            # old has no conditions: add_conditions_to_node(conditions, old_node)
-            # old has 1 condition, new len(conditions) == 1:
-
             if len(conditions) > 0:
-                # If the old node has an AND or NOT edge type, add a dummy node to combine the sources into one node
-                if old_node.in_edge.type == PropNetEdge.Type.And or old_node.in_edge.type == PropNetEdge.Type.Negation:
-                    dummy_node = self.add_dummy_node()
-                    old_node.in_edge.dest = dummy_node
-                    new_edge = PropNetEdge(dummy_node, old_node, PropNetEdge.Type.Or)
-                    dummy_node.out_edges.append(new_edge)
-                    old_node.in_edge = new_edge
-                elif old_node.in_edge.type == PropNetEdge.Type.Identity:
+                if old_node.in_edge is not None:
+                    # If the old node has an AND or NOT edge type, add a dummy node to combine the sources into one node
+                    if old_node.in_edge.type == PropNetEdge.Type.And or old_node.in_edge.type == PropNetEdge.Type.Negation:
+                        dummy_node = self.add_dummy_node()
+                        old_node.in_edge.dest = dummy_node
+                        new_edge = PropNetEdge([dummy_node], old_node, PropNetEdge.Type.Or)
+                        dummy_node.out_edges.append(new_edge)
+                        old_node.in_edge = new_edge
+
                     old_node.in_edge.type = PropNetEdge.Type.Or
+                    if len(conditions) == 1 and conditions[0].type != Term.Type.Not:
+                        
+
+                else:
+                    add_conditions_to_node(conditions, old_node)
 
             return old_node
         else:
