@@ -6,7 +6,6 @@ class PropNetNode:
         self.term = term
         self.value = init_value
         self.in_edge = None
-        self.out_edges = []
 
     def __repr__(self):
         return "{Name: " + str(self.term) + ", Value: " + str(self.value) + ", Condition edge: " + str(self.in_edge) + "}"

@@ -42,12 +42,10 @@ class PropNet:
                         dummy_node = self.add_dummy_node()
                         old_node.in_edge.dest = dummy_node
                         new_edge = PropNetEdge([dummy_node], old_node, PropNetEdge.Type.Or)
-                        dummy_node.out_edges.append(new_edge)
                         old_node.in_edge = new_edge
 
                     old_node.in_edge.type = PropNetEdge.Type.Or
-                    if len(conditions) == 1 and conditions[0].type != Term.Type.Not:
-                        
+                    self.add_conditions_with_or(conditions, old_node)
 
                 else:
                     add_conditions_to_node(conditions, old_node)
@@ -69,7 +67,6 @@ class PropNet:
             else:
                 cond_node = self.add_node(conditions[0])
                 new_edge = PropNetEdge([cond_node], node, PropNetEdge.Type.Identity)
-            cond_node.out_edges.append(new_edge)
             node.in_edge = new_edge
         else:
             new_edge = PropNetEdge([], node, PropNetEdge.Type.And)
@@ -79,13 +76,25 @@ class PropNet:
                     cond_node = self.add_node(condition.inner_terms[1])
                     dummy_node = self.add_dummy_node()
                     dummy_edge = PropNetEdge([cond_node], dummy_node, PropNetEdge.Type.Negation)
-                    cond_node.out_edges.append(dummy_edge)
                     dummy_node.in_edge = dummy_edge
                     source_node = dummy_node
                 else:
                     source_node = self.add_node(condition)
 
                 new_edge.sources.append(source_node)
+
+    # Assumes node already has an OR type in_edge
+    def add_conditions_with_or(self, conditions, node):
+        if len(conditions) == 0:
+            return
+        else if len(conditions) == 1 and conditions[0].type != Term.Type.Not:
+            cond_node = self.add_node(conditions[0])
+            node.in_edge.sources.append(cond_node)
+        else:
+            dummy_node = self.add_dummy_node()
+            self.add_conditions_to_node(conditions, dummy_node)
+            node.in_edge.sources.append(dummy_node)
+
 
     def add_dummy_node(self):
         dummy_string = "dummy" + str(self.dummy_count)
@@ -148,7 +157,6 @@ class PropNet:
                 base_node = self.nodes[base_str]
 
             new_edge = PropNetEdge([new_node], base_node, PropNetEdge.Type.Transition)
-            new_node.out_edges.append(new_edge)
             base_node.in_edge = new_edge
         elif prop_type == Term.Type.Legal:
             new_node = PropNetNode(term)
