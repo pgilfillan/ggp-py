@@ -87,7 +87,7 @@ class PropNet:
     def add_conditions_with_or(self, conditions, node):
         if len(conditions) == 0:
             return
-        else if len(conditions) == 1 and conditions[0].type != Term.Type.Not:
+        elif len(conditions) == 1 and conditions[0].type != Term.Type.Not:
             cond_node = self.add_node(conditions[0])
             node.in_edge.sources.append(cond_node)
         else:
