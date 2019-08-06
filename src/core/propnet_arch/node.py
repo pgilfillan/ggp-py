@@ -2,13 +2,23 @@ import re
 
 class PropNetNode:
 
-    def __init__(self, term, init_value=False):
+    def __init__(self, term):
         self.term = term
-        self.value = init_value
+        self.value = False
         self.in_edge = None
 
     def __repr__(self):
         return "{Name: " + str(self.term) + ", Value: " + str(self.value) + ", Condition edge: " + str(self.in_edge) + "}"
+
+    def __eq__(self, other):
+        return self.term == other.term
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return self.term.__hash__()
+
 
 class PropNetEdge:
     def __init__(self, source_nodes, dest_node, type):
@@ -48,6 +58,9 @@ class Term:
 
     def is_leaf(self):
         return len(self.inner_terms) == 0
+
+    def __hash__(self):
+        return self.term_str.__hash__()
 
     def _set_type(self):
         if self.term_str == "terminal":
