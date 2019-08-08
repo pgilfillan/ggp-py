@@ -62,7 +62,7 @@ class PropNet:
         if len(conditions) == 0:
             return
         elif len(conditions) == 1:
-            if conditions[0].Type == Term.Type.Not:
+            if conditions[0].type == Term.Type.Not:
                 cond_node = self.add_node(conditions[0].inner_terms[1])
                 new_edge = PropNetEdge([cond_node], node, PropNetEdge.Type.Negation)
             else:
