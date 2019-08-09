@@ -6,10 +6,10 @@ class PropNet:
     def __init__(self, description):
         self.nodes = {}
         self.init_marking = set()
+        self.roles = set()
 
         self.bases = set()
         self.inputs = set()
-        self.roles = set()
         self.legals = set()
         self.rewards = set()
         self.views = set()
@@ -22,17 +22,18 @@ class PropNet:
             self.add_node(term_tuple[0], term_tuple[1])
 
         print("Init marking:", self.init_marking)
+        print("Roles:", self.roles)
         print()
         for base_node_str in self.init_marking:
             self.nodes[base_node_str].value = True
         
         for node_name in self.nodes:
-            print(self.nodes[node_name])
+            print(self.nodes[node_name].term)
+        print("\nNum nodes:", len(self.nodes))
 
 
     def add_node(self, term, conditions=[]):
         term_str = str(term)
-
         if term_str in self.nodes:
             old_node = self.nodes[term_str]
 
@@ -49,7 +50,7 @@ class PropNet:
                     self.add_conditions_with_or(conditions, old_node)
 
                 else:
-                    add_conditions_to_node(conditions, old_node)
+                    self.add_conditions_to_node(conditions, old_node)
 
             return old_node
         else:
@@ -109,8 +110,9 @@ class PropNet:
     def new_node_add(self, term):
         prop_type = term.type
         if prop_type == Term.Type.Role:
-            new_node = PropNetNode(term)
-            self.roles.add(new_node)
+            self.roles.add(str(term.inner_terms[1]))
+            # Role should not have a condition, can return
+            return
         elif prop_type == Term.Type.Input:
             # Don't need to do anything with input terms:
             # can use legals instead + input should 
