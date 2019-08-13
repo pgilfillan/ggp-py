@@ -3,15 +3,17 @@ from .util import parse_gdl
 
 class PropNet:
 
+    ###### Methods for PropNet creation ######
+    
     def __init__(self, description):
         self.nodes = {}
         self.init_marking = set()
         self.roles = set()
 
-        self.bases = set()
-        self.inputs = set()
-        self.legals = set()
-        self.rewards = set()
+        self.bases = {}
+        self.inputs = {}
+        self.legals = {}
+        self.rewards = {}
         self.views = set()
         self.terminal = None
 
@@ -21,15 +23,25 @@ class PropNet:
         for term_tuple in term_tuples:
             self.add_node(term_tuple[0], term_tuple[1])
 
-        print("Init marking:", self.init_marking)
-        print("Roles:", self.roles)
-        print()
+        #print("Init marking:", self.init_marking)
+        #print("Roles:", self.roles)
+        #print()
         for base_node_str in self.init_marking:
             self.nodes[base_node_str].value = True
         
         for node_name in self.nodes:
-            print(self.nodes[node_name].term)
-        print("\nNum nodes:", len(self.nodes))
+            pass
+            #print(self.nodes[node_name].term)
+        #print("\nNum nodes:", len(self.nodes))
+        #print("Dummy count:", self.dummy_count)
+        #print()
+
+        #print("Legals:", self.legals)
+        #print("Bases:", self.bases)
+        #print("Inputs:", self.inputs)
+        #print("Terminal:", self.terminal)
+        #print("Rewards:", self.rewards)
+        #print("Views:", self.views)
 
 
     def add_node(self, term, conditions=[]):
@@ -124,7 +136,7 @@ class PropNet:
 
             if base_str not in self.nodes:
                 new_node = PropNetNode(base_term)
-                self.bases.add(new_node)
+                self.bases[base_str] = new_node
                 self.nodes[base_str] = new_node
                 return new_node
             else:
@@ -134,21 +146,21 @@ class PropNet:
             # Init should have not be a condition, can return
             return
         elif prop_type == Term.Type.GDLTrue:
-            prop_term = term.inner_terms[1]
-            prop_term_str = str(prop_term)
+            base_term = term.inner_terms[1]
+            base_str = str(base_term)
 
-            if prop_term_str not in self.nodes:
-                new_node = PropNetNode(prop_term)
-                self.bases.add(new_node)
-                self.nodes[prop_term_str] = new_node
+            if base_str not in self.nodes:
+                new_node = PropNetNode(base_term)
+                self.bases[base_str] = new_node
+                self.nodes[base_str] = new_node
                 return new_node
             else:
-                return self.nodes[prop_term_str]
+                return self.nodes[base_str]
         elif prop_type == Term.Type.Does:
             input_term_str = "(" + str(term.inner_terms[1]) + " " + str(term.inner_terms[2]) + ")"
             if input_term_str not in self.nodes:
                 new_node = PropNetNode(Term(input_term_str))
-                self.inputs.add(new_node)
+                self.inputs[input_term_str] = new_node
                 self.nodes[input_term_str] = new_node
                 return new_node
             else:
@@ -161,7 +173,7 @@ class PropNet:
             base_str = str(base_term)
             if base_str not in self.nodes:
                 base_node = PropNetNode(base_term)
-                self.bases.add(base_node)
+                self.bases[base_str] = base_node
                 self.nodes[base_str] = base_node
             else:
                 base_node = self.nodes[base_str]
@@ -170,16 +182,23 @@ class PropNet:
             base_node.in_edge = new_edge
         elif prop_type == Term.Type.Legal:
             new_node = PropNetNode(term)
-            self.legals.add(new_node)
 
-            input_term_str = "(" + str(term.inner_terms[1]) + " " + str(term.inner_terms[2]) + ")"
+            role = str(term.inner_terms[1])
+            if role not in self.legals:
+                self.legals[role] = set()
+            self.legals[role].add(new_node)
+
+            input_term_str = "(" + role + " " + str(term.inner_terms[2]) + ")"
             if input_term_str not in self.nodes:
                 new_input_node = PropNetNode(Term(input_term_str))
-                self.inputs.add(new_input_node)
+                self.inputs[input_term_str] = new_input_node
                 self.nodes[input_term_str] = new_input_node
         elif prop_type == Term.Type.Goal:
             new_node = PropNetNode(term)
-            self.rewards.add(new_node)
+            role = str(term.inner_terms[1])
+            if role not in self.rewards:
+                self.rewards[role] = set()
+            self.rewards[role].add(new_node)
         elif prop_type == Term.Type.Terminal:
             new_node = PropNetNode(term)
             self.terminal = new_node
@@ -189,3 +208,73 @@ class PropNet:
 
         self.nodes[str(term)] = new_node
         return new_node
+
+    ###### Methods for PropNet manipulation ######
+
+    def mark_bases(self, true_bases):
+        for base in self.bases:
+            if base in true_bases:
+                self.bases[base].value = True
+            else:
+                self.bases[base].value = False
+
+    def mark_inputs(self, actions):
+        for input in self.inputs:
+            if input in actions:
+                self.inputs[input].value = True
+            else:
+                self.inputs[input].value = False
+
+    def reset_to_initial(self):
+        self.clear()
+        for base_str in self.init_marking:
+            self.bases[base_str].value = True
+    
+    def clear(self):
+        for _, node in self.nodes.items():
+            node.value = False
+
+    def node_mark(self, node):
+        # Special case: legal nodes with no conditions should always be true
+        if node.term.type == Term.Type.Legal and node.in_edge is None:
+            return True
+        elif node in self.bases or node in self.inputs or node.in_edge is None:
+            return node.value
+
+        edge_type = node.in_edge.type
+        sources = node.in_edge.sources
+        if edge_type == PropNetEdge.Type.Identity:
+            source_mark = self.get_node_mark(sources[0])
+            node.value = source_mark
+            return node.value
+        elif edge_type == PropNetEdge.Type.Negation:
+            source_mark = self.get_node_mark(sources[0])
+            node.value = not source_mark
+            return node.value
+        elif edge_type == PropNetEdge.Type.Or:
+            for source in sources:
+                source_mark = self.get_node_mark(source)
+                if source_mark:
+                    node.value = True
+                    return True
+
+            node.value = False
+            return False
+        elif edge_type == PropNetEdge.Type.And:
+            for source in sources:
+                source_mark = self.get_node_mark(source)
+                if not source_mark:
+                    node.value = False
+                    return False
+                
+            node.value = True
+            return True
+            
+    
+    def get_state(self):
+        state = set()
+        for base, base_node in self.bases.items():
+            if base_node.value:
+                state.add(base)
+
+        return state

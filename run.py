@@ -1,4 +1,5 @@
 from src.core.statemachines.prolog import PrologStateMachine
+from src.core.statemachines.propnet import PropNetStateMachine
 from config import default
 from src.core.management.match import Match, MatchSpec
 
@@ -10,6 +11,8 @@ from importlib import import_module
 
 
 def load_players(match, sm):
+    roles = sm.get_roles()
+
     if args.players == None:
         players = {}
         players_mod = import_module("src.players")
@@ -20,14 +23,14 @@ def load_players(match, sm):
             for _, obj in inspect.getmembers(mod):
                 if inspect.isclass(obj):
                     if default.player == obj.__name__:
-                        for role_name in sm.roles:
+                        for role_name in roles:
                             players[role_name] = obj(match, role_name)
 
         if len(players) == 0:
             print("Unable to find default.player class")
             sys.exit(1)
-    elif len(args.players) != len(sm.roles):
-        print("%d players specified, but given game requires %d roles" % (len(args.players), len(sm.roles)))
+    elif len(args.players) != len(roles):
+        print("%d players specified, but given game requires %d roles" % (len(args.players), len(roles)))
         sys.exit(1)
     else:
         players = {}
@@ -41,10 +44,10 @@ def load_players(match, sm):
                 if inspect.isclass(obj):
                     for player_name in args.players:
                         if player_name == obj.__name__:
-                            players[sm.roles[num_found]] = obj(match, sm.roles[num_found])
+                            players[roles[num_found]] = obj(match, roles[num_found])
                             num_found += 1
 
-        if num_found != len(sm.roles):
+        if num_found != len(roles):
             print("Was only able to find %d of the %d players specified" % (num_found, len(args.players)))
             sys.exit(1)
 
@@ -52,11 +55,11 @@ def load_players(match, sm):
 
 
 def main():
-    game_description_pl = "games/" + args.game + "/" + args.game + ".pl"
+    game_description_pl = "games/" + args.game + "/" + args.game + "." + args.description_type
     with open(game_description_pl, 'r') as f:
         game_description = f.read()
 
-    sm = PrologStateMachine(game_description)
+    sm = PropNetStateMachine(game_description)
     match = Match(MatchSpec(game_description))
     players = load_players(match, sm)
 
@@ -102,6 +105,8 @@ if __name__ == "__main__":
                             type=int, default=1)
     arg_parser.add_argument('--max_moves', metavar='max_moves', help='Maximum number of moves for each game', type=int,
                             default=100)
+    arg_parser.add_argument('--description_type', metavar='description_type',
+                            help='File type of game description, one of pl or gdl', default="pl")
     arg_parser.add_argument('--study_time', metavar='study_time',
                             help='TIme limit (s) for player to study the game before the match', type=int, default=0)
     arg_parser.add_argument('--prepare_time', metavar='prepare_time',

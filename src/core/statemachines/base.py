@@ -29,3 +29,7 @@ class StateMachine(ABC):
     @abstractmethod
     def get_next_state(self, state, moves):
         pass
+
+    @abstractmethod
+    def get_roles(self):
+        pass

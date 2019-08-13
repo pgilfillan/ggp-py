@@ -9,7 +9,7 @@ class PrologStateMachine(StateMachine):
     def __init__(self, description):
         self.prolog = Prolog()
         load_game_description(description)
-        self.roles = list(set([str(res['R']) for res in list(self.prolog.query("role(R)"))]))
+        self.roles = set([str(res['R']) for res in list(self.prolog.query("role(R)"))])
 
     def get_initial_state(self):
         bases = []
@@ -65,3 +65,5 @@ class PrologStateMachine(StateMachine):
             if term.value:
                 self.prolog.assertz("true(" + term.name + ")")
 
+    def get_roles(self):
+        return self.roles
