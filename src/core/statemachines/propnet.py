@@ -19,7 +19,7 @@ class PropNetStateMachine(StateMachine):
         reward_nodes = self.propnet.rewards
         for node in reward_nodes[player]:
             if self.propnet.node_mark(node):
-                return str(node.inner_terms[2])
+                return str(node.term.inner_terms[2])
 
         print("Error: failed to get goal value for player: " + player)
 

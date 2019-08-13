@@ -235,25 +235,27 @@ class PropNet:
             node.value = False
 
     def node_mark(self, node):
+        node_str = str(node.term)
+
         # Special case: legal nodes with no conditions should always be true
         if node.term.type == Term.Type.Legal and node.in_edge is None:
             return True
-        elif node in self.bases or node in self.inputs or node.in_edge is None:
+        elif node_str in self.bases or node_str in self.inputs or node.in_edge is None:
             return node.value
 
         edge_type = node.in_edge.type
         sources = node.in_edge.sources
         if edge_type == PropNetEdge.Type.Identity:
-            source_mark = self.get_node_mark(sources[0])
+            source_mark = self.node_mark(sources[0])
             node.value = source_mark
             return node.value
         elif edge_type == PropNetEdge.Type.Negation:
-            source_mark = self.get_node_mark(sources[0])
+            source_mark = self.node_mark(sources[0])
             node.value = not source_mark
             return node.value
         elif edge_type == PropNetEdge.Type.Or:
             for source in sources:
-                source_mark = self.get_node_mark(source)
+                source_mark = self.node_mark(source)
                 if source_mark:
                     node.value = True
                     return True
@@ -262,7 +264,7 @@ class PropNet:
             return False
         elif edge_type == PropNetEdge.Type.And:
             for source in sources:
-                source_mark = self.get_node_mark(source)
+                source_mark = self.node_mark(source)
                 if not source_mark:
                     node.value = False
                     return False

@@ -93,7 +93,9 @@ def main():
         else:
             print("Game ended in", moves_played, "moves")
             print("Ending state:", curr_state)
-            print("Player scores: xplayer: ", sm.get_goal_value(curr_state, "xplayer"), "; oplayer: ", sm.get_goal_value(curr_state, "oplayer"))
+            print("Player scores:")
+            for player in sm.get_roles():
+                print("  " + player + ": " + str(sm.get_goal_value(curr_state, player)))
 
         print()
 
