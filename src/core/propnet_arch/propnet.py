@@ -23,26 +23,9 @@ class PropNet:
         for term_tuple in term_tuples:
             self.add_node(term_tuple[0], term_tuple[1])
 
-        #print("Init marking:", self.init_marking)
-        #print("Roles:", self.roles)
-        #print()
         for base_node_str in self.init_marking:
             self.nodes[base_node_str].value = True
         
-        for node_name in self.nodes:
-            pass
-            #print(self.nodes[node_name].term)
-        #print("\nNum nodes:", len(self.nodes))
-        #print("Dummy count:", self.dummy_count)
-        #print()
-
-        #print("Legals:", self.legals)
-        #print("Bases:", self.bases)
-        #print("Inputs:", self.inputs)
-        #print("Terminal:", self.terminal)
-        #print("Rewards:", self.rewards)
-        #print("Views:", self.views)
-
     def __str__(self):
         node_values = [str((self.nodes[node].term, self.nodes[node].value)) for node in self.nodes]
         return '\n'.join(node_values) + '\n'
