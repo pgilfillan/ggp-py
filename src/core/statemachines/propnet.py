@@ -36,26 +36,29 @@ class PropNetStateMachine(StateMachine):
         legal_nodes = self.propnet.legals[player]
         for node in legal_nodes:
             if self.propnet.node_mark(node):
-                legals.add(str(node.inner_terms[2]))
+                legals.add(str(node.term.inner_terms[2]))
 
         return legals
 
     def get_legal_joint_moves(self, state):
-        pass
+        joint_moves = {}
+        for role in self.propnet.roles:
+            joint_moves[role] = self.get_legal_moves(state, role)
+        return joint_moves
 
     def get_next_state(self, state, moves):
         self.propnet.clear()
         self.propnet.mark_inputs(moves)
         self.propnet.mark_bases(state)
-        next_state = set()
+        next_state_truths = set()
         for base, base_node in self.propnet.bases.items():
             if base_node.in_edge is None:
                 if base_node.value:
-                    next_state.add(base)
+                    next_state_truths.add(base)
             elif self.propnet.node_mark(base_node.in_edge.sources[0]):
-                    next_state.add(base)
+                next_state_truths.add(base)
         
-        return next_state
+        return State(next_state_truths)
             
     def get_roles(self):
         return self.propnet.roles

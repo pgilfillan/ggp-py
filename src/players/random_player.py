@@ -8,7 +8,7 @@ class RandomPlayer(BasePlayer):
         return info
 
     def select_move(self, select_time, state, moves):
-        return random.choice(moves)
+        return random.sample(moves, 1)[0]
 
     def study(self, study_time):
         pass

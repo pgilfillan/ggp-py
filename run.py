@@ -88,6 +88,9 @@ def main():
             curr_state = sm.get_next_state(curr_state, next_moves)
             moves_played += 1
 
+        if moves_played > 0:
+            print()
+
         if moves_played == args.max_moves:
             print("Game ended before terminating: max moves reached")
         else:

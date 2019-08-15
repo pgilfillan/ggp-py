@@ -56,14 +56,14 @@ class MonteCarloPlayer(BasePlayer):
                 if role == self.role:
                     chosen_moves[role] = init_move
                 else:
-                    chosen_moves[role] = random.choice(joint_moves[role])
+                    chosen_moves[role] = random.sample(joint_moves[role], 1)[0]
             curr_state = self.sm.get_next_state(curr_state, chosen_moves)
 
         while not self.sm.is_terminal(curr_state):
             joint_moves = self.sm.get_legal_joint_moves(curr_state)
             chosen_moves = {}
             for role in joint_moves:
-                chosen_moves[role] = random.choice(joint_moves[role])
+                chosen_moves[role] = random.sample(joint_moves[role], 1)[0]
             curr_state = self.sm.get_next_state(curr_state, chosen_moves)
 
         return self.sm.get_goal_value(curr_state, self.role)

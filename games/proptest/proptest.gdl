@@ -11,4 +11,3 @@
 (<= (goal white 0) (not q))
 (<= (goal black 0) q)
 (<= (goal black 100) (not q))
-(init s)

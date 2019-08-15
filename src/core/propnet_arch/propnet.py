@@ -43,6 +43,10 @@ class PropNet:
         #print("Rewards:", self.rewards)
         #print("Views:", self.views)
 
+    def __str__(self):
+        node_values = [str((self.nodes[node].term, self.nodes[node].value)) for node in self.nodes]
+        return '\n'.join(node_values) + '\n'
+
 
     def add_node(self, term, conditions=[]):
         term_str = str(term)
@@ -114,7 +118,7 @@ class PropNet:
         dummy_string = "dummy" + str(self.dummy_count)
         dummy_node = PropNetNode(Term(dummy_string))
         self.nodes[dummy_string] = dummy_node
-        self.views.append(dummy_node)
+        self.views.add(dummy_node)
         self.dummy_count += 1
         return dummy_node
 
@@ -219,11 +223,9 @@ class PropNet:
                 self.bases[base].value = False
 
     def mark_inputs(self, actions):
-        for input in self.inputs:
-            if input in actions:
-                self.inputs[input].value = True
-            else:
-                self.inputs[input].value = False
+        for role in actions:
+            input_str = "(" + role + " " + actions[role] + ")"
+            self.inputs[input_str].value = True
 
     def reset_to_initial(self):
         self.clear()
@@ -242,7 +244,7 @@ class PropNet:
             return True
         elif node_str in self.bases or node_str in self.inputs or node.in_edge is None:
             return node.value
-
+        
         edge_type = node.in_edge.type
         sources = node.in_edge.sources
         if edge_type == PropNetEdge.Type.Identity:
