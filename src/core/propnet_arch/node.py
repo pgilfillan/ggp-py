@@ -108,7 +108,6 @@ class Term:
         Not = 11
         Other = 12
 
-
 def props_split(proposition):
     bracket_count = 0
     recording = False
