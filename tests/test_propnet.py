@@ -1,6 +1,7 @@
 import util
 import pytest
 from src.core.propnet_arch.propnet import PropNet
+from src.core.statemachines.propnet import PropNetStateMachine
 
 simple_description = util.get_game_description("proptest_simple")
 complex_grounded_description = util.get_game_description("proptest_complex_grounded")
@@ -17,6 +18,8 @@ def test_simple_grounded_rules_propnet_creation():
     assert len(p.rewards["white"]) == 2
     assert len(p.rewards["black"]) == 2
 
+def test_simple_grounded_rules_game_play():
+    util.run_random_game(PropNetStateMachine(simple_description), 5)
 
 def test_complex_grounded_rules_propnet_creation():
     p = PropNet(complex_grounded_description)

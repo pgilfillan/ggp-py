@@ -8,7 +8,7 @@ class StateMachine(ABC):
 
     @abstractmethod
     def get_initial_state(self):
-        return State()
+        return State([])
 
     @abstractmethod
     def is_terminal(self, state):
