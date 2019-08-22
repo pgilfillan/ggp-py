@@ -1,0 +1,44 @@
+(role 
+ white)
+(role     black   )
+(	base 	s	)	
+(base (test complex))
+(
+    input
+     mark
+        )
+(input (othermark complex (rule even more  complex) ) )
+(legal white mark)
+(legal black mark)
+
+(legal white 
+(othermark complex (rule even more  
+complex) )
+)
+
+(<= 
+(next s) 
+(does white mark) 
+(does black mark))
+
+(<= (next (test complex))
+    (does white (othermark complex (rule even more  complex) ) 
+    )
+)
+
+(<= q 
+    (true s)
+)
+
+(<= terminal q)
+
+(<= (goal 
+white 100) 
+q)
+(<=   (goal    
+   white 0)    (not 
+   q))
+
+(<= (goal black 0) q)
+
+(<= (goal black 100) (not q))

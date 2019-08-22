@@ -113,6 +113,8 @@ def props_split(proposition):
     recording = False
     terms = []
     term_chars = []
+    has_been_gap = False
+    last_non_ws_char = ''
     for char in proposition:
         if not char.isspace():
             recording = True
@@ -120,11 +122,19 @@ def props_split(proposition):
                 bracket_count += 1
             elif char == ')':
                 bracket_count -= 1
+            
+            if has_been_gap and last_non_ws_char != '(' and char != ')':
+                term_chars.append(' ')
+            last_non_ws_char = char
+            has_been_gap = False
         elif bracket_count == 0:
             recording = False
+        else:
+            has_been_gap = True
 
         if recording:
-            term_chars.append(char)
+            if not char.isspace():
+                term_chars.append(char)
         elif not recording and len(term_chars) > 0:
             terms.append(Term(''.join(term_chars)))
             term_chars = []
